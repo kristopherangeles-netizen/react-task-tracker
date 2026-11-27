@@ -68,7 +68,7 @@ The job rejects non-main sources and invalid parameters, retrieves that exact bu
 
 ## SonarQube
 
-`sonar-project.properties` configures source/test discovery and imports the LCOV coverage report. Create the `react-task-tracker` project in SonarQube and configure a quality gate before running the main-branch pipeline.
+`sonar-project.properties` configures source/test discovery and imports the LCOV coverage report. Create the `react-task-tracker` project in SonarQube and configure a quality gate that requires at least 80% overall coverage before running the main-branch pipeline. Task IDs use the Web Crypto UUID API; task creation reports an error if secure ID generation is unavailable.
 
 ## Docker
 

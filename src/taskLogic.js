@@ -1,11 +1,20 @@
-export function createTask(title, id = globalThis.crypto?.randomUUID?.()) {
+function generateTaskId() {
+  const randomUUID = globalThis.crypto?.randomUUID
+  if (typeof randomUUID !== 'function') {
+    throw new Error('Secure task ID generation is unavailable.')
+  }
+
+  return randomUUID.call(globalThis.crypto)
+}
+
+export function createTask(title, id) {
   const normalizedTitle = title.trim()
   if (!normalizedTitle) {
     throw new Error('Task title cannot be empty.')
   }
 
   return {
-    id: id ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`,
+    id: id ?? generateTaskId(),
     title: normalizedTitle,
     completed: false,
   }

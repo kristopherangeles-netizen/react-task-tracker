@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { countRemaining, createTask, getVisibleTasks, toggleTask } from './taskLogic.js'
 
 describe('task behavior', () => {
@@ -8,6 +8,23 @@ describe('task behavior', () => {
       title: 'Write tests',
       completed: false,
     })
+  })
+
+  it('generates a UUID when no ID is supplied', () => {
+    expect(createTask('Generated task').id).toMatch(
+      /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i,
+    )
+  })
+
+  it('reports when secure task ID generation is unavailable', () => {
+    vi.stubGlobal('crypto', undefined)
+    try {
+      expect(() => createTask('Generated task')).toThrow(
+        'Secure task ID generation is unavailable.',
+      )
+    } finally {
+      vi.unstubAllGlobals()
+    }
   })
 
   it('rejects a task with no title', () => {
