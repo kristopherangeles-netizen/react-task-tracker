@@ -6,7 +6,6 @@ pipeline {
     }
 
     options {
-        timestamps()
         disableConcurrentBuilds()
         skipDefaultCheckout(true)
         timeout(time: 30, unit: 'MINUTES')
@@ -45,25 +44,16 @@ pipeline {
             }
         }
 
-        stage('Build') {
-            when {
-                anyOf {
-                    branch 'main'
-                    branch 'develop'
-                }
-            }
-            steps {
-                sh 'npm run build'
-            }
-        }
-
         stage('SonarQube analysis') {
             when {
                 branch 'main'
             }
             steps {
-                withSonarQubeEnv('SonarQube') {
-                    sh 'sonar-scanner'
+                script {
+                    def scannerHome = tool 'SonarScanner'
+                    withSonarQubeEnv('SonarQube') {
+                        sh "${scannerHome}/bin/sonar-scanner"
+                    }
                 }
             }
         }
@@ -76,6 +66,18 @@ pipeline {
                 timeout(time: 10, unit: 'MINUTES') {
                     waitForQualityGate abortPipeline: true
                 }
+            }
+        }
+
+        stage('Build') {
+            when {
+                anyOf {
+                    branch 'main'
+                    branch 'develop'
+                }
+            }
+            steps {
+                sh 'npm run build'
             }
         }
 

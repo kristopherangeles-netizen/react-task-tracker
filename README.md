@@ -41,7 +41,7 @@ Create a **Multibranch Pipeline** pointed at the GitHub repository and enable br
 The CI pipeline expects:
 
 - The NodeJS Jenkins plugin and a configured Node.js installation named **NodeJS** (Node 22.12 or newer).
-- The SonarQube Scanner for Jenkins plugin, a server configuration named **SonarQube**, and a `sonar-scanner` tool on the agent's `PATH`.
+- The SonarQube Scanner for Jenkins plugin, a server configuration named **SonarQube**, and an automatically installed SonarQube Scanner tool named **SonarScanner**.
 - The SonarQube server webhook configured to call Jenkins' `/sonarqube-webhook/` endpoint so the quality-gate stage can complete.
 - The HTML Publisher plugin for the coverage report. The pipeline also archives the LCOV file.
 
@@ -51,7 +51,7 @@ Branch-specific CI behavior:
 - `develop`: checkout, install and test, generate coverage, and production build.
 - `feature/<name>`: checkout, install and test, and generate coverage; analysis, quality gate, build, and artifact archive are skipped.
 
-The pipeline checks out the source explicitly, then runs tests before coverage. A test failure stops that branch's pipeline. SonarQube analysis and the quality gate run only on `main`; a failed main-branch gate prevents build and archive. The release archive contains the built site and Dockerfile.
+The pipeline checks out the source explicitly, then runs tests before coverage. A test failure stops that branch's pipeline. SonarQube analysis and the quality gate run only on `main`; a failed main-branch gate prevents build and archive. The configured **SonarScanner** tool is invoked by the pipeline for analysis. The release archive contains the built site and Dockerfile.
 
 ## Jenkins continuous deployment
 
