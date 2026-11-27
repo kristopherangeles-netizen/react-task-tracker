@@ -1,0 +1,82 @@
+pipeline {
+    agent any
+
+    parameters {
+        string(
+            name: 'CI_JOB_FULL_NAME',
+            defaultValue: 'react-task-tracker/main',
+            description: 'Full Jenkins path to the multibranch main job, for example folder/react-task-tracker/main'
+        )
+        string(
+            name: 'CI_BUILD_NUMBER',
+            defaultValue: '1',
+            description: 'Successful CI build number containing the release artifact'
+        )
+        string(
+            name: 'DOCKER_IMAGE',
+            defaultValue: 'react-task-tracker',
+            description: 'Docker image repository name (lowercase; no tag)'
+        )
+        string(
+            name: 'HOST_PORT',
+            defaultValue: '8080',
+            description: 'Host port that will serve the application'
+        )
+    }
+
+    options {
+        timestamps()
+        disableConcurrentBuilds()
+        timeout(time: 20, unit: 'MINUTES')
+    }
+
+    stages {
+        stage('Validate deployment parameters') {
+            steps {
+                script {
+                    if (params.CI_JOB_FULL_NAME.tokenize('/').last() != 'main') {
+                        error('Only an artifact from the multibranch main job can be deployed.')
+                    }
+                    if (!(params.CI_BUILD_NUMBER ==~ /^[1-9][0-9]*$/)) {
+                        error('CI_BUILD_NUMBER must be a positive Jenkins build number.')
+                    }
+                    if (!(params.DOCKER_IMAGE ==~ /^[a-z0-9]+([._\/-][a-z0-9]+)*$/)) {
+                        error('DOCKER_IMAGE must be a lowercase Docker repository name without a tag.')
+                    }
+                    if (!(params.HOST_PORT ==~ /^[0-9]+$/)
+                        || params.HOST_PORT.toInteger() < 1
+                        || params.HOST_PORT.toInteger() > 65535) {
+                        error('HOST_PORT must be a number from 1 through 65535.')
+                    }
+                }
+            }
+        }
+
+        stage('Retrieve selected release') {
+            steps {
+                copyArtifacts(
+                    projectName: params.CI_JOB_FULL_NAME,
+                    selector: specific(params.CI_BUILD_NUMBER),
+                    filter: "release-${params.CI_BUILD_NUMBER}.tar.gz",
+                    fingerprintArtifacts: true
+                )
+                sh "tar -xzf 'release-${params.CI_BUILD_NUMBER}.tar.gz'"
+            }
+        }
+
+        stage('Build and deploy Docker image') {
+            steps {
+                script {
+                    def imageTag = "${params.DOCKER_IMAGE}:${params.CI_BUILD_NUMBER}"
+                    sh "docker build --pull --tag '${imageTag}' ."
+                    sh '''
+                        if docker container inspect taskboard >/dev/null 2>&1; then
+                            docker rm --force taskboard
+                        fi
+                    '''
+                    sh "docker run --detach --restart unless-stopped --name taskboard --publish ${params.HOST_PORT}:80 '${imageTag}'"
+                }
+            }
+        }
+    }
+}
