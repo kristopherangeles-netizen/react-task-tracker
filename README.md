@@ -65,6 +65,14 @@ Run the CD job with:
 
 The job rejects non-main sources and invalid build numbers, retrieves that exact build's `release-<CI_BUILD_NUMBER>.tar.gz`, extracts it, and builds the Docker image tagged with the CI build number. It does not rebuild the React source. Each environment uses its own container and host port: DEV `8081`, TEST `8082`, ACC `8083`, and PROD `8084`. The job prints the selected CI build, environment, container, port, and browser URL in the console. For example, PROD is available at `http://<docker-host>:8084/`.
 
+The Jenkins agent running this job needs the Docker CLI and access to a Docker daemon. To build a Jenkins image with the CLI from the repository root:
+
+```sh
+docker build -t jenkins-lab-with-docker-cli -f jenkins/Dockerfile .
+```
+
+Configure the Jenkins runtime to mount the Docker socket at `/var/run/docker.sock` and grant the Jenkins user permission to access it. Docker socket access gives Jenkins control over the Docker host; use it only in a trusted, isolated lab.
+
 ## SonarQube
 
 `sonar-project.properties` configures source/test discovery and imports the LCOV coverage report. Create the `react-task-tracker` project in SonarQube and configure a quality gate that requires at least 80% overall coverage before running the main-branch pipeline. Task IDs use the Web Crypto UUID API; task creation reports an error if secure ID generation is unavailable.
