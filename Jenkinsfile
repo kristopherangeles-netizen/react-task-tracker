@@ -18,12 +18,6 @@ pipeline {
             }
         }
 
-        stage('Lint') {
-            steps {
-                sh 'npm run lint'
-            }
-        }
-
         stage('Test with coverage') {
             steps {
                 sh 'npm run test:coverage'
@@ -43,7 +37,25 @@ pipeline {
             }
         }
 
+        stage('Lint') {
+            when {
+                anyOf {
+                    branch 'main'
+                    branch 'develop'
+                }
+            }
+            steps {
+                sh 'npm run lint'
+            }
+        }
+
         stage('Build') {
+            when {
+                anyOf {
+                    branch 'main'
+                    branch 'develop'
+                }
+            }
             steps {
                 sh 'npm run build'
             }

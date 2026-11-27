@@ -24,7 +24,15 @@ The test suite covers task creation, validation, completion, filtering, and the 
 
 ## GitHub branches
 
-Create a GitHub repository for this directory and push a `main` branch plus one or more development branches (for example `develop` and `feature/...`). Configure Jenkins SCM credentials in Jenkins rather than storing credentials in this repository. Do not commit `node_modules`, `coverage`, `dist`, passwords, or access tokens.
+The repository uses `main` for stable releases, `develop` for integration, and `feature/<name>` for individual changes. Create feature branches from `develop`, for example:
+
+```sh
+git switch develop
+git switch -c feature/my-change
+git push -u origin feature/my-change
+```
+
+Configure Jenkins SCM credentials in Jenkins rather than storing credentials in this repository. Do not commit `node_modules`, `coverage`, `dist`, passwords, or access tokens.
 
 ## Jenkins continuous integration
 
@@ -37,7 +45,13 @@ The CI pipeline expects:
 - The SonarQube server webhook configured to call Jenkins' `/sonarqube-webhook/` endpoint so the quality-gate stage can complete.
 - The HTML Publisher plugin for the coverage report. The pipeline also archives the LCOV file.
 
-Every discovered branch runs install, lint, test/coverage, and build. SonarQube analysis and the quality gate run on `main`; passing `main` builds archive a versioned `release-<build-number>.tar.gz` containing the built site and Dockerfile.
+Branch-specific CI behavior:
+
+- `main`: install, test with coverage, lint, SonarQube analysis, quality gate, production build, and archive a versioned `release-<build-number>.tar.gz`.
+- `develop`: install, test with coverage, lint, and production build.
+- `feature/<name>`: install and run tests; linting and building are skipped.
+
+SonarQube analysis and the quality gate run only on `main`. The release archive is created only after the main-branch quality gate passes and contains the built site and Dockerfile.
 
 ## Jenkins continuous deployment
 
