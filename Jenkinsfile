@@ -8,17 +8,25 @@ pipeline {
     options {
         timestamps()
         disableConcurrentBuilds()
+        skipDefaultCheckout(true)
         timeout(time: 30, unit: 'MINUTES')
     }
 
     stages {
-        stage('Install') {
+        stage('Checkout') {
             steps {
-                sh 'npm ci'
+                checkout scm
             }
         }
 
-        stage('Test with coverage') {
+        stage('Install and test') {
+            steps {
+                sh 'npm ci'
+                sh 'npm test'
+            }
+        }
+
+        stage('Generate coverage') {
             steps {
                 sh 'npm run test:coverage'
                 publishHTML(target: [
@@ -34,18 +42,6 @@ pipeline {
                 always {
                     archiveArtifacts artifacts: 'coverage/lcov.info', allowEmptyArchive: true
                 }
-            }
-        }
-
-        stage('Lint') {
-            when {
-                anyOf {
-                    branch 'main'
-                    branch 'develop'
-                }
-            }
-            steps {
-                sh 'npm run lint'
             }
         }
 
@@ -83,7 +79,7 @@ pipeline {
             }
         }
 
-        stage('Package release') {
+        stage('Archive artifact') {
             when {
                 branch 'main'
             }

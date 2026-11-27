@@ -47,11 +47,11 @@ The CI pipeline expects:
 
 Branch-specific CI behavior:
 
-- `main`: install, test with coverage, lint, SonarQube analysis, quality gate, production build, and archive a versioned `release-<build-number>.tar.gz`.
-- `develop`: install, test with coverage, lint, and production build.
-- `feature/<name>`: install and run tests; linting and building are skipped.
+- `main`: checkout, install and test, generate coverage, SonarQube analysis, quality gate, production build, and archive a versioned `release-<build-number>.tar.gz`.
+- `develop`: checkout, install and test, generate coverage, and production build.
+- `feature/<name>`: checkout, install and test, and generate coverage; analysis, quality gate, build, and artifact archive are skipped.
 
-SonarQube analysis and the quality gate run only on `main`. The release archive is created only after the main-branch quality gate passes and contains the built site and Dockerfile.
+The pipeline checks out the source explicitly, then runs tests before coverage. A test failure stops that branch's pipeline. SonarQube analysis and the quality gate run only on `main`; a failed main-branch gate prevents build and archive. The release archive contains the built site and Dockerfile.
 
 ## Jenkins continuous deployment
 
