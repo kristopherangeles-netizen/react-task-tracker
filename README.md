@@ -59,16 +59,19 @@ Create a separate Pipeline job using this repository's `Jenkinsfile.cd` (the Scr
 
 Run the CD job with:
 
-- `CI_JOB_FULL_NAME`: the full Jenkins path of the multibranch **main** job, such as `react-task-tracker/main` or `folder/react-task-tracker/main`.
+- `CI_JOB_FULL_NAME`: the full Jenkins path of the multibranch **main** job, such as `react-task-tracker-ci/main` or `folder/react-task-tracker-ci/main`.
 - `CI_BUILD_NUMBER`: the successful main-branch CI build number whose archived release should be deployed.
-- `DOCKER_IMAGE`: a lowercase image repository name, default `react-task-tracker`.
-- `HOST_PORT`: the host port to expose, default `8080`.
+- `ENVIRONMENT`: choose `DEV`, `TEST`, `ACC`, or `PROD`.
 
-The job rejects non-main sources and invalid parameters, retrieves that exact build's artifact, builds the Docker image tagged with the build number, and replaces the running `taskboard` container. The site is then available at `http://<docker-host>:<HOST_PORT>/`.
+The job rejects non-main sources and invalid build numbers, retrieves that exact build's `release-<CI_BUILD_NUMBER>.tar.gz`, extracts it, and builds the Docker image tagged with the CI build number. It does not rebuild the React source. Each environment uses its own container and host port: DEV `8081`, TEST `8082`, ACC `8083`, and PROD `8084`. The job prints the selected CI build, environment, container, port, and browser URL in the console. For example, PROD is available at `http://<docker-host>:8084/`.
 
 ## SonarQube
 
 `sonar-project.properties` configures source/test discovery and imports the LCOV coverage report. Create the `react-task-tracker` project in SonarQube and configure a quality gate that requires at least 80% overall coverage before running the main-branch pipeline. Task IDs use the Web Crypto UUID API; task creation reports an error if secure ID generation is unavailable.
+
+## Dependency security
+
+Run `npm audit` to check the dependency tree. At the time of the latest check, it reported no vulnerabilities; run it again before submission because advisories can change.
 
 ## Docker
 
@@ -81,4 +84,4 @@ docker run --rm -p 8080:80 react-task-tracker:local
 
 ## Demonstrating a pipeline failure and correction
 
-For a safe, reproducible exercise, temporarily change the expected output in a task test, push the branch, and observe the test stage fail. Restore the correct expectation, push the fix, and verify that the branch pipeline passes. Keep the deliberate failure out of `main` so no broken artifact is eligible for deployment.
+For a safe, reproducible exercise, use a disposable feature branch. Temporarily change the expected output in a task test, commit and push that change, and capture the Jenkins run stopping at the test stage. Restore the correct expectation, commit and push the fix, and capture the passing rerun. Do not merge the deliberately failing test into `main`.
