@@ -35,10 +35,3 @@ export function getVisibleTasks(tasks, filter) {
 export function countRemaining(tasks) {
   return tasks.filter((task) => !task.completed).length
 }
-
-export function coverageGateDemo(value) {
-  if (value) {
-    return value.trim()
-  }
-  return 'demo'
-}
