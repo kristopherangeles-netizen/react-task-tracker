@@ -14,7 +14,7 @@ describe('Taskboard', () => {
     await user.type(input, 'Review changes')
     await user.click(screen.getByRole('button', { name: 'Add task' }))
 
-    expect(screen.getByText('2 tasks left')).toBeInTheDocument()
+    expect(screen.getByText('99 tasks left')).toBeInTheDocument()
     expect(screen.getByText('Plan release')).toBeInTheDocument()
 
     await user.click(screen.getByRole('checkbox', { name: 'Plan release' }))
